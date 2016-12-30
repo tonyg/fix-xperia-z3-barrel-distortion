@@ -30,6 +30,8 @@ def poll_wonky():
             sys.stdout.flush()
 
 def main():
+    sys.stdout.write('Starting up.\n')
+    sys.stdout.flush()
     while True:
         poll_wonky()
         time.sleep(5)
