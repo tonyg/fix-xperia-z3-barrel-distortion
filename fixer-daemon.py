@@ -9,6 +9,9 @@ import os
 import subprocess
 import sys
 
+# ensure_dir(PathString) -> None
+# Creates all directories in path `p`, including intermediate directories.
+# Example: ensure_dir('a/b/c') -- creates a, a/b, and a/b/c as directories.
 def ensure_dir(p):
     try:
         os.makedirs(p)
@@ -17,6 +20,12 @@ def ensure_dir(p):
     sys.stdout.write('Created dir %s\n' % (p,))
     sys.stdout.flush()
 
+# clean_dirs(PathString, PathString) -> None
+# Removes path `p` and all parent directories until a remove fails OR
+# until `p` is a prefix of `stop_at`. Analogous to `os.removedirs`,
+# except has `stop_at`.
+# Example: clean_dirs('a/b/c/d', 'a/b') -- removes a/b/c/d and a/b/c,
+# but only if both are otherwise empty.
 def clean_dirs(p, stop_at):
     while not stop_at.startswith(p):
         try:
@@ -25,14 +34,16 @@ def clean_dirs(p, stop_at):
             return
         sys.stdout.write('Removed dir %s\n' % (p,))
         sys.stdout.flush()
-        p = os.path.dirname(p)
+        p = os.path.dirname(p) # change `p` from `.../a/b` to `.../a`, e.g.
 
+# poll_wonky() -> None
+# Main routine: checks and processes the contents of the `Wonky/` subdir.
 def poll_wonky():
     for (sourcedir, _subdirs, leafnames) in os.walk('Wonky'):
-        subdirparts = sourcedir.split('/')[1:]
-        inprogressdir = os.path.join('Inprogress', *subdirparts)
-        problemsdir = os.path.join('Problems', *subdirparts)
-        targetdir = os.path.join('Fixed', *subdirparts)
+        subdirparts = sourcedir.split('/')[1:] # If sourcedir is `a/b/c`, subdirparts is ['b', 'c']
+        inprogressdir = os.path.join('Inprogress', *subdirparts) # ... and inprogressdir is 'Inprogress/b/c'
+        problemsdir = os.path.join('Problems', *subdirparts) # ... likewise
+        targetdir = os.path.join('Fixed', *subdirparts) # ... likewise
 
         should_clean_dirs = len(subdirparts) and len(leafnames)
 
@@ -74,6 +85,8 @@ def poll_wonky():
 
         if should_clean_dirs: clean_dirs(inprogressdir, 'Inprogress')
 
+# main() -> None
+# Entry point. Repeatedly calls `poll_wonky`, with a 5 second delay in between calls.
 def main():
     sys.stdout.write('Starting up.\n')
     sys.stdout.flush()
